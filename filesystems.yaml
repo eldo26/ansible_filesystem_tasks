@@ -1,0 +1,17 @@
+---
+- hosts: all
+  tasks:
+    - name: Adding mount points
+      lineinfile:
+        path: /etc/fstab
+        line: /dev/datavg/data_lv1 /data/vol1 ext4 defaults 1 2 
+    - name: Create Mount points 
+      file:
+        path: /data/vol1
+        state: directory
+    - name: mount file system
+      mount:
+        src: /dev/datavg/data_lv1
+        path: /data/vol1
+        state: mounted
+        fstype: ext4

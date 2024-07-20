@@ -1,0 +1,14 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: resize physical volume
+      lvg:
+        pvs: "{{ device_name }}"
+        vg: datavg
+        pvresize: yes
+    - name: lv extend 
+      lvol:
+        vg: datavg
+        lv: data_lv1
+        size: +100%FREE

@@ -1,0 +1,54 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: create dynatrace VG
+      lvg:
+        pvs: /dev/sdc1 
+        vg: dyna_vg
+    - name: create lvm for Dynatrace binary
+      lvol:
+        vg: dyna_vg
+        lv: dyna_binary
+        size: 5G
+        state: present
+    - name: create lvm for Dynatrace logs 
+      lvol:
+        vg: dyna_vg
+        lv: dyna_logs
+        size: 5G
+        state: present
+    - name: create ext4 filesystems for Dynatrace 
+      filesystem:
+        dev: "{{ item }}"
+        fstype: ext4
+        opts: -m 0
+      with_items: 
+        - /dev/dyna_vg/dyna_binary
+        - /dev/dyna_vg/dyna_logs
+    - name: create mount points
+      file:
+        path: "{{ item }}"
+        state: directory
+      with_items: 
+        - /app/dynatrace/bin
+        - /app/dynatrace/logs 
+    - name: Adding mount points in fstab
+      lineinfile:
+        path: /etc/fstab
+        line: "{{ item }}"
+      with_items: 
+        - /dev/dyna_vg/dyna_binary /app/dynatrace/bin ext4 defaults 1 2
+        - /dev/dyna_vg/dyna_logs /app/dynatrace/logs  ext4 defaults 1 2 
+    - name: mount Dynatrace binary file system
+      mount:
+        src: /dev/dyna_vg/dyna_binary
+        path: /app/dynatrace/bin
+        state: mounted
+        fstype: ext4        
+    - name: mount Dynatrace log file system
+      mount:
+        src: /dev/dyna_vg/dyna_logs
+        path: /app/dynatrace/logs
+        state: mounted
+        fstype: ext4             

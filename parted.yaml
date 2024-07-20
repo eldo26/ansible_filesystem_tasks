@@ -1,0 +1,18 @@
+---
+- hosts: all 
+  become: yes
+  tasks:
+    - name: create partition
+      parted:
+        device: /dev/sdc
+        number: 1
+        state: present
+        flags: lvm 
+        part_end: "100%"
+    - name: resize partition
+      parted: 
+        device: /dev/sdc
+        number: 1
+        resize: true
+        part_end: "100%"
+        state: present
